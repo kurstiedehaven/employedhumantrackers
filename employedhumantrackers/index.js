@@ -8,13 +8,12 @@ const db = mysql.createConnection({
     user: 'root',
     password: '',
     database: 'employedhumantrackers'
-});
+},
+console.log('Connected to the employedhumantrackers database.')
+);
 
-// Define the home function
-function home() {
-    // Prompt the user again for an action
-    start();
-}
+start();
+
 
 // Prompt the user to select an option
 async function start() {
@@ -37,56 +36,99 @@ async function start() {
         switch (answer.start) {
             case 'View all employees':
                 db.query('SELECT * FROM employee', (err, results) => {
-                    console.log(results);
+                    console.table(results);
                     start();
                 });
                 break;
             case 'View all roles':
                 db.query('SELECT * FROM role', (err, results) => {
-                    console.log(results);
+                    console.table(results);
                     start();
                 });
                 break;
             case 'View all departments':
                 db.query('SELECT * FROM department', (err, results) => {
-                    console.log(results);
+                    console.table(results);
                     start();
                 });
                 break;
+            
+            // Add employee, role, department
             case 'Add employee':
                 inquirer.prompt([
-                    // Input prompts for adding employee
+                    {
+                        name: 'first_name',
+                        type: 'input',
+                        message: 'Enter the employee first name',
+                    },
+                    {
+                        name: 'last_name',
+                        type: 'input',
+                        message: 'Enter the employee last name',
+                    },
+                    {
+                        name: 'role_id',
+                        type: 'input',
+                        message: 'Enter the employee role id',
+                    },
+                    {
+                        name: 'manager_id',
+                        type: 'input',
+                        message: 'Enter the employee manager id',
+                    },
                 ]).then((answer) => {
                     db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [answer.first_name, answer.last_name, answer.role_id, answer.manager_id], (err, results) => {
-                        console.log('Employee added');
+                        // console.log('Employee added');
                         start();
                     });
                 });
                 break;
+
+            // Add role
             case 'Add role':
-                inquirer.prompt([
-                    // Input prompts for adding role
+                inquirer.prompt([{
+                    name: 'newRole',
+                    type: 'input',
+                    message: 'Enter the role title',
+                },
+                {
+                    name: 'newSalary',
+                    type: 'input',
+                    message: 'Enter the role salary',
+                },
+                {
+                    name: 'newDepartmentId',
+                    type: 'input',
+                    message: 'Enter the department id',
+                }
                 ]).then((answer) => {
-                    db.query('INSERT INTO role SET ?', answer, (err, results) => {
-                        console.log('Role added');
-                        home();
+                    db.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)',[answer.newRole, answer.newSalary, answer.newDeptarmentID], (err, results) => {
+                        // console.log('Role added');
+                        start();
                     });
                 });
                 break;
+
+            // Add department
             case 'Add department':
                 inquirer.prompt([
-                    // Input prompts for adding department
+                    {
+                        name: 'newDept',
+                        type: 'input',
+                        message: 'Enter the department name',
+                    },
                 ]).then((answer) => {
                     db.query('INSERT INTO department (department_name) VALUES (?)', [answer.newDept], (err, results) => {
-                        console.log('Department added');
-                        home();
+                        start();
                     });
                 });
                 break;
+
+            // Update employee role
             case 'Update employee role':
                 db.query('SELECT * FROM employee', (err, results) => {
                     // check if function after id firstname lastname is correct
-                    const employee = results.map(({ id, first_name, last_name }) => ({ name: `${first_name} ${last_name}`, value: id }));
+                    const employee = results.map(({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id }));
                     inquirer.prompt([
                         {
                             name: 'employee',
@@ -97,7 +139,8 @@ async function start() {
                     ])
                     .then((answer) => {
                         const employeeId = answer.employee;
-                        const roleChange = [employeeId];
+                        const roleChange = [];
+                        roleChange.push(employeeId);
 
                         db.query('SELECT * FROM role', (err, results) => {
                             const role = results.map(({ id, title }) => ({ name: title, value: id }));
@@ -113,7 +156,6 @@ async function start() {
                                 const newRoleId = answer.role;
                                 roleChange.push(newRoleId);
                                 db.query('UPDATE employee SET role_id = ? WHERE id = ?', roleChange, (err, results) => {
-                                    console.log('Role updated');
                                     start();
                                 });
                             });
@@ -121,13 +163,10 @@ async function start() {
                     });
                 });
                 break;
+
             case 'Exit':
                 console.log('Goodbye');
                 process.exit();
-                break;
         }
     });
-}
-
-// Start the application
-start();
+};
