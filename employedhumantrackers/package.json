@@ -1,0 +1,17 @@
+{
+  "name": "employedhumantrackers",
+  "version": "1.0.0",
+  "description": "This is a command-line application used to manage a company's employee database using Node.js, Inquirer, and MySQL.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "inquirer": "^9.2.15",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.9.2"
+  }
+}
