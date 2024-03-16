@@ -35,13 +35,13 @@ async function start() {
     .then((answer) => {
         switch (answer.start) {
             case 'View all employees':
-                db.query('SELECT * FROM employee', (err, results) => {
+                db.query('SELECT * FROM employees', (err, results) => {
                     console.table(results);
                     start();
                 });
                 break;
             case 'View all roles':
-                db.query('SELECT * FROM role', (err, results) => {
+                db.query('SELECT * FROM department_role', (err, results) => {
                     console.table(results);
                     start();
                 });
@@ -77,7 +77,7 @@ async function start() {
                         message: 'Enter the employee manager id',
                     },
                 ]).then((answer) => {
-                    db.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [answer.first_name, answer.last_name, answer.role_id, answer.manager_id], (err, results) => {
+                    db.query('INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)', [answer.first_name, answer.last_name, answer.role_id, answer.manager_id], (err, results) => {
                         // console.log('Employee added');
                         start();
                     });
@@ -102,8 +102,9 @@ async function start() {
                     message: 'Enter the department id',
                 }
                 ]).then((answer) => {
-                    db.query('INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)',[answer.newRole, answer.newSalary, answer.newDeptarmentID], (err, results) => {
+                    db.query('INSERT INTO department_role (title, salary, department_id) VALUES (?, ?, ?)',[answer.newRole, Number(answer.newSalary), Number(answer.newDepartmentId)], (err, results) => {
                         // console.log('Role added');
+                        console.log(err);
                         start();
                     });
                 });
@@ -126,7 +127,7 @@ async function start() {
 
             // Update employee role
             case 'Update employee role':
-                db.query('SELECT * FROM employee', (err, results) => {
+                db.query('SELECT * FROM employees', (err, results) => {
                     // check if function after id firstname lastname is correct
                     const employee = results.map(({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id }));
                     inquirer.prompt([
@@ -137,12 +138,13 @@ async function start() {
                             choices: employee,
                         },
                     ])
-                    .then((answer) => {
+                        .then((answer) => {
+                        console.log(answer);
                         const employeeId = answer.employee;
                         const roleChange = [];
                         roleChange.push(employeeId);
 
-                        db.query('SELECT * FROM role', (err, results) => {
+                        db.query('SELECT * FROM department_role', (err, results) => {
                             const role = results.map(({ id, title }) => ({ name: title, value: id }));
                             inquirer.prompt([
                                 {
@@ -154,8 +156,10 @@ async function start() {
                             ])
                             .then((answer) => {
                                 const newRoleId = answer.role;
-                                roleChange.push(newRoleId);
-                                db.query('UPDATE employee SET role_id = ? WHERE id = ?', roleChange, (err, results) => {
+                                roleChange.unshift(newRoleId);
+                                console.log(roleChange);
+                                db.query('UPDATE employees SET role_id = ? WHERE id = ?', roleChange, (err, results) => {
+                                    console.log(err);
                                     start();
                                 });
                             });
